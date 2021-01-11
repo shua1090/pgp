@@ -1,6 +1,9 @@
 package pgpf;
+
 import java.math.BigInteger;
-import java.util.Random;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64.*;
+import java.util.*;
 /*
     Provides encryption services for text
     Copyright (C) 2021 Shynn Lawrence
@@ -22,7 +25,43 @@ public class RSA{
     BigInteger e; // Public Key
     BigInteger d; // Private Key
     BigInteger n; 
+    String publicKey;
+    String privateKey;
     RSA(){
+    }
+
+    public String encode(String str){
+        Encoder encoder = Base64.getEncoder();
+        return encoder.encodeToString(str.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    public String decode(String str){
+        Decoder decoder = Base64.getDecoder();
+        return new String(decoder.decode(str), StandardCharsets.UTF_8);
+    }
+
+    public void unpackagePrivate(){
+
+    }
+
+    public void unpackagePublic(){
+
+    }
+
+    public void packageKeys(){
+
+        String tempPublicKey = "";
+        String tempPrivateKey = "";
+
+        int eLength = e.toString().length();
+        int dLength = d.toString().length();
+        int nLength = n.toString().length();
+
+        tempPublicKey = encode(e.toString() + n.toString());
+        tempPrivateKey = encode(d.toString() + n.toString());
+
+        publicKey  = "---" +  " Public Key " + Integer.toHexString(eLength) + " ---\n" +  tempPublicKey + "\n" + "--- End Public Key ---" ;
+        privateKey = "---" + " Private Key " + Integer.toHexString(dLength) + " ---\n" + tempPrivateKey + "\n" + "--- End Private Key ---";
     }
 
     // Extended Euclidean Algorithm
@@ -56,12 +95,12 @@ public class RSA{
         rand.nextBytes(byteArray);
         byteArray[0] = 0;
         result = new BigInteger(byteArray);
-        result = result.nextProbablePrime();
+        // result = result.nextProbablePrime();
         // FIXME: Pure random - Better but takes longer time. Still deciding.
         do{
             rand.nextBytes(byteArray);
             result = new BigInteger(byteArray);
-        } while (result.compareTo(longVal) != 1 || !result.isProbablePrime(1));
+        } while (result.compareTo(longVal) != 1 || !IsProbablyPrime(result));
         return result;
     }
 
@@ -76,6 +115,55 @@ public class RSA{
         } while (!(temp.gcd(phi).compareTo(BigInteger.ONE) == 0)|| (temp.compareTo(f) != -1 || temp.compareTo(k) != -1));
         this.e = temp;
         this.d = inverse(phi, e);
-        System.out.println("Expected answer: 1; Actual answer: "+((this.e.multiply(this.d)).mod(phi)));
+        // System.out.println("Expected answer: 1; Actual answer: "+((this.e.multiply(this.d)).mod(phi)));
+    }
+
+
+    public static boolean IsProbablyPrime(BigInteger value) {
+        int witnesses = 10;
+        if (value.compareTo(BigInteger.ONE) == -1)
+            return false;
+
+        if (witnesses <= 0)
+            witnesses = 10;
+
+        BigInteger d = value.subtract(BigInteger.ONE);
+        int s = 0;
+
+        while (d.mod(BigInteger.TWO).equals(BigInteger.ZERO)) {
+            d = d.divide(BigInteger.TWO);
+            s += 1;
+        }
+
+        byte[] bytes = new byte[value.toByteArray().length];
+        BigInteger a;
+        var Gen = new Random();
+
+        for (int i = 0; i < witnesses; i++) {
+            do {
+                Gen.nextBytes(bytes);
+
+                a = new BigInteger(bytes);
+            }
+            while (a.compareTo(BigInteger.TWO) == -1 || a.compareTo(value.subtract(BigInteger.TWO)) == 1);
+
+            BigInteger x = a.modPow(d, value);
+            if (x.equals(BigInteger.ONE) || x.equals(value.subtract(BigInteger.ONE)))
+                continue;
+
+            for (int r = 1; r < s; r++) {
+                x = x.modPow(BigInteger.TWO, value);
+
+                if (x.equals(BigInteger.ONE))
+                    return false;
+                if (x.equals(value.subtract(BigInteger.ONE)))
+                    break;
+            }
+
+            if (!x.equals(value.subtract(BigInteger.ONE)))
+                return false;
+        }
+
+        return true;
     }
 }

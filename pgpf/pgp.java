@@ -119,11 +119,16 @@ public class pgp extends Thread {
                 // textArea.setCaretPosition(textArea.getDocument().getLength());
                 textArea.append("\nThe size of the public key is: "+rsaBase.e.toString(2).length() + " bits long");
                 textArea.append("\nThe size of the private key is: "+rsaBase.d.toString(2).length() + " bits long");
-                textArea.append("\nThe RSA Generation has complete in " + (new Date().getTime() - startTime) / 1000+ " seconds.\n This window will automatically close in 10 seconds.\n");
+                textArea.append("\nThe size of the n key is: "+rsaBase.n.toString(2).length() + " bits long");
+
+                textArea.append("\nKey Generation has succesfully completed.");
+                rsaBase.packageKeys();
+
+                textArea.append("\nThe RSA Generation has been completed in " + (new Date().getTime() - startTime) / 1000+ " seconds.\n This window will automatically close in 10 seconds.\n");
                 textArea.setCaretPosition(textArea.getDocument().getLength());
                 try{Thread.sleep(10000);} catch (Exception e) {}
-                window.setEnabled(false);
-                window.setVisible(false);
+                // window.setEnabled(false);
+                // window.setVisible(false);
             }
         }).start();
 
