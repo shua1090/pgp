@@ -1,42 +1,41 @@
-package pgpf;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.util.*;
-import pgpf.RSA;
-public class tests {
+package crypto;
 
-    public static void RSAspeed(){
+import java.util.Date;
+
+public class Tests {
+
+    public static void RSAspeed() {
         System.out.println("---Beginning Speed Runs---");
         var date = new Date();
         var StartTime = date.getTime();
         System.out.print("Test Number:  ");
         long[] times = new long[51];
         times[0] = StartTime;
-        
-        for (int i = 1; i < 51; i ++){
-            new RSA().gen();
-            System.out.print("\b\b"+((String.valueOf(i).length() == 1) ? "0"+i : i));
-            times[i] = date.getTime() - times[i-1];
+
+        for (int i = 1; i < 51; i++) {
+            new Rsa().gen();
+            System.out.print("\b\b" + ((String.valueOf(i).length() == 1) ? "0" + i : i));
+            times[i] = date.getTime() - times[i - 1];
         }
 
         long total = 0;
 
-        for (int i = 0; i < 50; i++){
-            total += times[i+1];
+        for (int i = 0; i < 50; i++) {
+            total += times[i + 1];
         }
 
-        float avg = (total)/50;
+        double avg = total / 50.0;
 
-        System.out.println(String.format("Ran %d tests in %d seconds with an average time of %f milliseconds per test.", 50, date.getTime()-StartTime, avg));
+        System.out.printf("Ran %d tests in %d seconds with an average time of %f milliseconds per test.%n", 50, date.getTime() - StartTime, avg);
     }
 
-    public static void RSASize(){
+    public static void RSASize() {
         int[] bdarray = new int[5];
         int[] bearray = new int[5];
         int[] bnarray = new int[5];
-        
-        for (int i = 0; i < 5; i ++){
-            var r = new RSA();
+
+        for (int i = 0; i < 5; i++) {
+            var r = new Rsa();
             r.gen();
             bdarray[i] = r.d.toString().length();
             bearray[i] = r.e.toString().length();
@@ -48,7 +47,7 @@ public class tests {
         int onen = bnarray[0];
 
 
-        for (int i = 0; i < bdarray.length; i++){
+        for (int i = 0; i < bdarray.length; i++) {
             // if (bdarray[i] != oned){
             //     System.out.println(String.format("At Index %d of d, size was %d not %d.", i, bdarray[i], oned));
             // }
@@ -64,14 +63,14 @@ public class tests {
     }
 
     // Run tests
-    public static void main(String[] args){
+    public static void main(String[] args) {
         // var z = new RSA();
         // z.gen();
         // var k = z.encrypt("Loafer Arnav");
         // System.out.println(k);
         // System.out.println(z.decrypt(k));
-        for (int i = 0; i < 10; i++){
-            var z = new RSA();
+        for (int i = 0; i < 10; i++) {
+            var z = new Rsa();
             z.gen();
             z.packageKeys();
             System.out.println("----" + i + "----");
