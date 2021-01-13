@@ -39,6 +39,7 @@ public class pgp extends Thread {
     JTabbedPane rsaPane = new JTabbedPane();
     static RSA rsaBase = new RSA();
     JPanel rsaGenerate = new JPanel();
+    JPanel rsaEnDecrypt = new JPanel();
 
     public static void genRSA(){
         new Thread(new Runnable(){
@@ -138,6 +139,8 @@ public class pgp extends Thread {
     private void setupRSA() {
         var gl = new GridLayout(10, 10);
         // this.rsaGenerate = new JPanel();
+
+        // Generate Key
         rsaPane.add("Generate", this.rsaGenerate);
         this.rsaGenerate.setLayout(gl);
 
@@ -160,6 +163,18 @@ public class pgp extends Thread {
         j.addActionListener(
             new ButtonListener()
         );
+
+        // Encrypt and Decrypt
+        rsaPane.add("Encrypt/Decrypt", this.rsaEnDecrypt);
+        this.rsaEnDecrypt.setLayout(gl);
+
+        JTextArea cipherPlainField = new JTextArea("", 100,100);
+        var textPanel = new JScrollPane(cipherPlainField);
+        textPanel.setVisible(true);
+        textPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        textPanel.setVisible(true);
+        rsaEnDecrypt.add(textPanel);
+
     }
 
     pgp(){

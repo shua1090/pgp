@@ -30,14 +30,24 @@ public class RSA{
     RSA(){
     }
 
-    public String encode(String str){
+    public String b64encode(String str){
         Encoder encoder = Base64.getEncoder();
         return encoder.encodeToString(str.toString().getBytes(StandardCharsets.UTF_8));
     }
 
-    public String decode(String str){
+    public String b64decode(String str){
         Decoder decoder = Base64.getDecoder();
         return new String(decoder.decode(str), StandardCharsets.UTF_8);
+    }
+
+    public String encrypt(String str){
+        var f = new BigInteger(str.getBytes(StandardCharsets.UTF_8)).modPow(this.e, this.n);
+        return b64encode(f.toString());
+    }
+
+    public String decrypt(String zed){
+        var k = new BigInteger(b64decode(zed)).modPow(this.d, this.n);
+        return new String(k.toByteArray(), StandardCharsets.UTF_8);
     }
 
     public void unpackagePrivate(){
@@ -48,6 +58,7 @@ public class RSA{
 
     }
 
+    // Base 64 Encoding and Size Encoding
     public void packageKeys(){
 
         String tempPublicKey = "";
@@ -55,10 +66,9 @@ public class RSA{
 
         int eLength = e.toString().length();
         int dLength = d.toString().length();
-        int nLength = n.toString().length();
 
-        tempPublicKey = encode(e.toString() + n.toString());
-        tempPrivateKey = encode(d.toString() + n.toString());
+        tempPublicKey = b64encode(e.toString() + n.toString());
+        tempPrivateKey = b64encode(d.toString() + n.toString());
 
         publicKey  = "---" +  " Public Key " + Integer.toHexString(eLength) + " ---\n" +  tempPublicKey + "\n" + "--- End Public Key ---" ;
         privateKey = "---" + " Private Key " + Integer.toHexString(dLength) + " ---\n" + tempPrivateKey + "\n" + "--- End Private Key ---";
@@ -91,7 +101,7 @@ public class RSA{
         BigInteger longVal = BigInteger.valueOf(Long.MAX_VALUE);
         Random rand = new Random();
         BigInteger result;
-        byte[] byteArray = new byte[size];
+        byte[] byteArray = new byte[size+1];
         rand.nextBytes(byteArray);
         byteArray[0] = 0;
         result = new BigInteger(byteArray);
@@ -99,26 +109,30 @@ public class RSA{
         // FIXME: Pure random - Better but takes longer time. Still deciding.
         do{
             rand.nextBytes(byteArray);
-            result = new BigInteger(byteArray);
-        } while (result.compareTo(longVal) != 1 || !IsProbablyPrime(result));
+            byteArray[0] = 0;
+            result = new BigInteger(byteArray).nextProbablePrime();
+        } while (result.compareTo(longVal) != 1 || !IsProbablyPrime(result) || !(result.toString(2).length() == (int) (size)*8));
         return result;
     }
 
     public void gen(){
         BigInteger f = largePrime(256);
+        // System.out.println(f.toString());
         BigInteger k = largePrime(256);
+        // System.out.println(k.toString());
         this.n = f.multiply(k);
         var phi = (f.subtract(BigInteger.valueOf(1)).multiply(k.subtract(BigInteger.valueOf(1))));
+        // System.out.println(phi.toString().length());
         BigInteger temp;
         do{
-            temp = largePrime(250);
+            temp = largePrime(256);
         } while (!(temp.gcd(phi).compareTo(BigInteger.ONE) == 0)|| (temp.compareTo(f) != -1 || temp.compareTo(k) != -1));
         this.e = temp;
         this.d = inverse(phi, e);
-        // System.out.println("Expected answer: 1; Actual answer: "+((this.e.multiply(this.d)).mod(phi)));
+        // System.out.println("Expected answer: 1; Actual answer: "+((this.e.multiply(this.d)).mod(phi))); //<- Sanity Check
     }
 
-
+    // Rabin-Miller Primalty
     public static boolean IsProbablyPrime(BigInteger value) {
         int witnesses = 10;
         if (value.compareTo(BigInteger.ONE) == -1)

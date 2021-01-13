@@ -2,7 +2,7 @@ package pgpf;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
-
+import pgpf.RSA;
 public class tests {
 
     public static void RSAspeed(){
@@ -65,6 +65,27 @@ public class tests {
 
     // Run tests
     public static void main(String[] args){
-        RSASize();
+        // var z = new RSA();
+        // z.gen();
+        // var k = z.encrypt("Loafer Arnav");
+        // System.out.println(k);
+        // System.out.println(z.decrypt(k));
+        for (int i = 0; i < 10; i++){
+            var z = new RSA();
+            z.gen();
+            z.packageKeys();
+            System.out.println("----" + i + "----");
+            System.out.println(z.privateKey);
+            System.out.println(z.publicKey);
+            // System.out.println(z.encrypt("NICE").length());
+            // System.out.println(z.encrypt("Though I find Asciidoc allows for more complex document structure.").length());
+            // System.out.println(z.encrypt("NOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOI SAID I WOULD CLOSE DISCORD AND FOCUSSSSSWait @3dcantaloupe do we have music bot? You said we do, and then you tried some stuff and nothing seemed to happen").length());
+            // System.out.println(String.format("D length in is: %d while E length in is %d. In bits, D: %d, E: %d. Encrypting some text will lead to a length of %s", z.d.toString().length(), z.e.toString().length(), z.d.toString(2).length(), z.e.toString(2).length(), z.encrypt("TEST TEXT IS BEST HOHO").length()));
+        }
+        // var f = z.decrypt(k);
+        // System.out.println(f);
+        // z.decrypt()
+        // System.out.println(z.encrypt("Test"));
+        // System.out.println(z.decrypt(z.encrypt("Test")));
     }
 }
