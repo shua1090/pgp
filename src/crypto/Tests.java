@@ -30,9 +30,7 @@ public class Tests {
     }
 
     public static void RSASize() {
-        int[] bdarray = new int[5];
-        int[] bearray = new int[5];
-        int[] bnarray = new int[5];
+        int[] bdarray = new int[5], bearray = new int[5], bnarray = new int[5];
 
         for (int i = 0; i < 5; i++) {
             var r = new Rsa();
