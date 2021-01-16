@@ -2,13 +2,11 @@ package crypto;
 
 import java.io.File;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 
 public class Pgp extends Thread {
     JTabbedPane pgpPanes;
