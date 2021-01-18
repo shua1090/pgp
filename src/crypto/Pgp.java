@@ -7,6 +7,7 @@ import java.util.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
 
 public class Pgp extends Thread {
     JTabbedPane pgpPanes;
@@ -77,7 +78,7 @@ public class Pgp extends Thread {
             textArea.append("\nCalculating Public (e) key");
             BigInteger temp;
             do {
-                temp = rsaBase.largePrime(255);
+                temp = rsaBase.largePrime(256);
             } while (!(temp.gcd(phi).compareTo(BigInteger.ONE) == 0) || (temp.compareTo(f) != -1 || temp.compareTo(k) != -1));
             textArea.append("\nCalculated Public key");
             textArea.setCaretPosition(textArea.getDocument().getLength());
