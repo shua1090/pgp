@@ -144,19 +144,19 @@ public class Rsa {
         return result;
     }
 
-    private BigInteger[] twoPrimeGen(int size){
+    public BigInteger[] twoPrimeGen(int size){
         BigInteger f = largePrime(size);
         BigInteger k = largePrime(size);
         return new BigInteger[]{f, k};
     }
 
-    private BigInteger nphi(BigInteger[] arr){
+    public BigInteger nphi(BigInteger[] arr){
         this.n = arr[0].multiply(arr[1]);
         var phi = (arr[0].subtract(BigInteger.valueOf(1)).multiply(arr[1].subtract(BigInteger.valueOf(1))));
         return phi;
     }
 
-    private void edcalc(BigInteger phi, BigInteger[] b, int size){
+    public void edcalc(BigInteger phi, BigInteger[] b, int size){
         BigInteger temp;
         do {
             temp = largePrime(size);

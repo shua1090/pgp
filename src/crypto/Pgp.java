@@ -47,58 +47,21 @@ public class Pgp extends Thread {
 
             window.setVisible(true);
             textArea.append("-------RSA-------\n");
-
-            textArea.append("-Generating a large Prime Number-\n");
             textArea.setCaretPosition(textArea.getDocument().getLength());
 
-            BigInteger f = rsaBase.largePrime(256);
-
-            textArea.append(f.toString());
-            textArea.append("\nFound");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            textArea.append("\n-Generating another large Prime Number-\n");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            BigInteger k = rsaBase.largePrime(256);
-
-            textArea.append(k.toString());
-            textArea.append("\nFound");
-
-            textArea.append("\nCalculating N");
-            rsaBase.n = f.multiply(k);
-            textArea.append("\nCalculated n");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            textArea.append("\nCalculating φ");
-            BigInteger phi = (f.subtract(BigInteger.valueOf(1)).multiply(k.subtract(BigInteger.valueOf(1))));
-            textArea.append("\nCalculated φ");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            textArea.append("\nCalculating Public (e) key");
-            BigInteger temp;
+            BigInteger phi;
+            int size = 256;
             do {
-                temp = rsaBase.largePrime(256);
-            } while (!(temp.gcd(phi).compareTo(BigInteger.ONE) == 0) || (temp.compareTo(f) != -1 || temp.compareTo(k) != -1));
-            textArea.append("\nCalculated Public key");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-            rsaBase.e = temp;
-            textArea.append("\nCalculating Private Key using Extended Euclidean Algorithm");
-            rsaBase.d = rsaBase.inverse(phi, rsaBase.e);
-            textArea.append("\nCalculated Private key");
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            // textArea.append("\nCombining N with E and D");
-            // try{Thread.sleep(1000);} catch (Exception e) {}
-            // textArea.append("\nCompleted.");
-
-            textArea.append("\nSanity Check:");
-            textArea.append("\nExpected answer: 1; Actual answer: " + ((rsaBase.e.multiply(rsaBase.d)).mod(phi)));
-            textArea.setCaretPosition(textArea.getDocument().getLength());
-
-            // try{Thread.sleep(5000);} catch (Exception e) {}
-            // textArea.append("\nIf 'Actual Answer' is not 1, the RSA process failed. \nPlease report this incident and try again.");
-            // textArea.setCaretPosition(textArea.getDocument().getLength());
+                textArea.append("Generating 2 large Prime Numbers\n");
+                var b = rsaBase.twoPrimeGen(256);
+                textArea.append("Calculating N and φ\n");
+                phi = rsaBase.nphi(b);
+                textArea.append("Calculating e and d keys\n");
+                rsaBase.edcalc(phi, b, size);
+                textArea.append("Packaging the Keys (B64)\n");
+                textArea.setCaretPosition(textArea.getDocument().getLength());
+            } while (rsaBase.fencrypt("TEST").length() != 1644 || !(rsaBase.e.multiply(rsaBase.d).mod(phi).equals(BigInteger.ONE)));
+            
             textArea.append("\nThe size of the public key is: " + rsaBase.e.toString(2).length() + " bits long");
             textArea.append("\nThe size of the private key is: " + rsaBase.d.toString(2).length() + " bits long");
             textArea.append("\nThe size of the n key is: " + rsaBase.n.toString(2).length() + " bits long");
@@ -108,12 +71,12 @@ public class Pgp extends Thread {
 
             textArea.append("\nThe RSA Generation has been completed in " + (new Date().getTime() - startTime) / 1000 + " seconds.\n This window will automatically close in 10 seconds.\n");
             textArea.setCaretPosition(textArea.getDocument().getLength());
-            try {
-                Thread.sleep(10000);
-            } catch (Exception ignored) {
-            }
-            // window.setEnabled(false);
-            // window.setVisible(false);
+
+            try {Thread.sleep(10000);} catch (Exception ignored) {/*pass*/}
+
+            window.setEnabled(false);
+            window.setVisible(false);
+
         }).start();
 
     }
