@@ -1,12 +1,8 @@
 package crypto;
 
-import javax.annotation.processing.SupportedAnnotationTypes;
-
-import jdk.jfr.Description;
-
-import java.io.NotActiveException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.text.NumberFormat;
 import java.util.Base64.*;
 import java.util.*;
 
@@ -41,7 +37,7 @@ public class Rsa {
     @Deprecated
     public String encrypt(String bar) {
         var l = bar.split("");
-        System.out.println(l.length);
+//        System.out.println(l.length);
         String f = "";
         for (String str : l) {
 //        var f = new BigInteger(str. getBytes(StandardCharsets.UTF_8)).modPow(this.e, this.n);
@@ -50,7 +46,7 @@ public class Rsa {
 //            System.out.println(pad(new BigInteger(str.getBytes(StandardCharsets.UTF_8)).modPow(this.e, this.n).toString(), 1234).length());
 //            System.out.println(f.length());
         }
-        System.out.println("Length: "+f.length());
+//        System.out.println("Length: "+f.length());
         return b64encode(f);
     }
 
@@ -79,12 +75,42 @@ public class Rsa {
         return new String(k.toByteArray(), StandardCharsets.UTF_8);
     }
 
-    public void unpackagePrivate() {
-
+    public int unpackagePrivate(String key) {
+        int length = 0;
+        String header = key.substring(16, key.indexOf("\n")-4);
+        length = Integer.decode("0x"+header);
+        String fullKey = key.substring(key.indexOf("\n")+1);
+        fullKey = fullKey.substring(0, fullKey.indexOf("-")-1);
+        fullKey = b64decode(fullKey);
+        try {
+            var f = new BigInteger(fullKey.substring(0, length));
+            this.d = f;
+            this.privateKey = key;
+            f = new BigInteger(fullKey.substring(length));
+            this.n = f;
+        } catch (NumberFormatException e){
+            return -1;
+        }
+        return 1;
     }
 
-    public void unpackagePublic() {
-
+    public int unpackagePublic(String key) {
+        int length = 0;
+        String header = key.substring(15, key.indexOf("\n")-4);
+        length = Integer.decode("0x"+header);
+        String fullKey = key.substring(key.indexOf("\n")+1);
+        fullKey = fullKey.substring(0, fullKey.indexOf("-")-1);
+        fullKey = b64decode(fullKey);
+        try {
+            var f = new BigInteger(fullKey.substring(0, length));
+            this.e = f;
+            this.publicKey = key;
+            f = new BigInteger(fullKey.substring(length));
+            this.n = f;
+        } catch (NumberFormatException e){
+            return -1;
+        }
+        return 1;
     }
 
     // Base 64 Encoding and Size Encoding
@@ -172,20 +198,6 @@ public class Rsa {
             phi = nphi(b);
             edcalc(phi, b,size);
         } while (this.fencrypt("TEST").length() != 1644 || !(this.e.multiply(this.d).mod(phi).equals(BigInteger.ONE)));
-//        BigInteger f = largePrime(256);
-//        // System.out.println(f.toString());
-//        BigInteger k = largePrime(256);
-//        // System.out.println(k.toString());
-//        this.n = f.multiply(k);
-//        var phi = (f.subtract(BigInteger.valueOf(1)).multiply(k.subtract(BigInteger.valueOf(1))));
-//        // System.out.println(phi.toString().length());
-//        BigInteger temp;
-//        do {
-//            temp = largePrime(256);
-//        } while (!(temp.gcd(phi).compareTo(BigInteger.ONE) == 0) || (temp.compareTo(f) != -1 || temp.compareTo(k) != -1));
-//        this.e = temp;
-//        this.d = inverse(phi, e);
-        // System.out.println("Expected answer: 1; Actual answer: "+((this.e.multiply(this.d)).mod(phi))); //<- Sanity Check
     }
 
     // Rabin-Miller Primality

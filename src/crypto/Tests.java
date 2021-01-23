@@ -71,15 +71,6 @@ public class Tests {
         for (int i = 0; i < 10; i++) {
             var z = new Rsa();
             z.gen(256);
-            var f = "üöä";
-
-            var k = z.encrypt(f);
-
-//            System.out.println(k);
-//            System.out.println(f.length());
-//            System.out.println(k.length());
-//            System.out.println(z.b64decode(k).length());
-            System.out.println(z.decrypt(k));
         }
 //        for (var i : f) {
 //            z.fencrypt(i);
