@@ -2,14 +2,13 @@ package crypto;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.text.NumberFormat;
 import java.util.Base64.*;
 import java.util.*;
 
 public class Rsa {
-    BigInteger e; // Public Key
-    BigInteger d; // Private Key
-    BigInteger n;
+    public BigInteger e; // Public Key
+    public BigInteger d; // Private Key
+    public BigInteger n;
     String publicKey;
     String privateKey;
 
@@ -51,10 +50,47 @@ public class Rsa {
     }
 
 
-    public String fencrypt(String str) {
-        var f = new BigInteger(str.getBytes(StandardCharsets.UTF_8)).modPow(this.e, this.n);
-//        System.out.println("-"+f.toString().length());
+    public String pubkeyEncrypt(String str) {
+        BigInteger f = null;
+        if (str.length() > 10 && str.substring(0, 6).equals("BASE64")){
+            f = new BigInteger(b64decode(str.substring(6))).modPow(this.e, this.n);
+        } else {
+            f = new BigInteger(str.getBytes(StandardCharsets.UTF_8)).modPow(this.e, this.n);
+        }
         return b64encode(f.toString());
+    }
+
+    public String prikeyEncrypt(String str) {
+        BigInteger f = null;
+        if (str.length() > 10 && str.substring(0, 6).equals("BASE64")){
+            f = new BigInteger(b64decode(str.substring(6))).modPow(this.d, this.n);
+        } else {
+            f = new BigInteger(str.getBytes(StandardCharsets.UTF_8)).modPow(this.d, this.n);
+        }
+        return b64encode(f.toString());
+    }
+
+    public String prikeyDecrypt(String zed) {
+        BigInteger k;
+        try {
+            k = new BigInteger(b64decode(zed)).modPow(this.d, this.n);
+        } catch (Exception e){
+            k = new BigInteger(zed.getBytes(StandardCharsets.UTF_8)).modPow(this.d, this.n);
+            return b64encode(k.toString());
+        }
+        return new String(k.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    public String pubkeyDecrypt(String zed) {
+        BigInteger k;
+        try {
+            k = new BigInteger(b64decode(zed)).modPow(this.e, this.n);
+        }
+        catch (Exception e){
+            k = new BigInteger(zed.getBytes(StandardCharsets.UTF_8)).modPow(this.d, this.n);
+            return b64encode(k.toString());
+        }
+        return new String(k.toByteArray(), StandardCharsets.UTF_8);
     }
 
     @Deprecated
@@ -70,10 +106,6 @@ public class Rsa {
         return originalText;
     }
 
-    public String fdecrypt(String zed) {
-        var k = new BigInteger(b64decode(zed)).modPow(this.d, this.n);
-        return new String(k.toByteArray(), StandardCharsets.UTF_8);
-    }
 
     public int unpackagePrivate(String key) {
         int length = 0;
@@ -197,7 +229,7 @@ public class Rsa {
             var b = twoPrimeGen(size);
             phi = nphi(b);
             edcalc(phi, b,size);
-        } while (this.fencrypt("TEST").length() != 1644 || !(this.e.multiply(this.d).mod(phi).equals(BigInteger.ONE)));
+        } while (this.pubkeyEncrypt("TEST").length() != 1644 || !(this.e.multiply(this.d).mod(phi).equals(BigInteger.ONE)));
     }
 
     // Rabin-Miller Primality

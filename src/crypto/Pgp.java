@@ -1,14 +1,11 @@
 package crypto;
 
-import com.sun.net.httpserver.Authenticator;
-
 import java.io.*;
 import java.math.BigInteger;
 import java.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.plaf.metal.MetalLookAndFeel;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -23,12 +20,13 @@ public class Pgp{
     JPanel rsaGenerate = new JPanel();
     JPanel rsaEnDecrypt = new JPanel();
     JPanel rsaSaveLoad = new JPanel();
+    private static JTextArea outputTextArea;
+    private static JTextArea inputTextArea;
+    private static operations currentOp;
 
     public static void genRSA(int length) {
         // RSA Generation with Helpful Progress updates
         new Thread(() -> {
-
-            System.out.println(length);
             long startTime = new Date().getTime();
             JFrame window = new JFrame();
             window.setSize(400, 300);
@@ -68,7 +66,7 @@ public class Pgp{
                 rsaBase.packageKeys();
                 textArea.setCaretPosition(textArea.getDocument().getLength());
 
-            } while (rsaBase.fencrypt("TEST").length() != 1644 || !(rsaBase.e.multiply(rsaBase.d).mod(phi).equals(BigInteger.ONE)));
+            } while (rsaBase.pubkeyEncrypt("TEST").length() != 1644 || !(rsaBase.e.multiply(rsaBase.d).mod(phi).equals(BigInteger.ONE)));
 
             textArea.append("\nThe size of the public key is: " + rsaBase.e.toString(2).length() + " bits long");
             textArea.append("\nThe size of the private key is: " + rsaBase.d.toString(2).length() + " bits long");
@@ -83,6 +81,28 @@ public class Pgp{
             window.setVisible(false);
 
         }).start();
+    }
+
+    public void runOperation(operations opcode, String text){
+        new Thread(()->{
+            if(opcode == operations.Public_Encrypt){
+                outputTextArea.setText(rsaBase.pubkeyEncrypt(text));
+            } else if (opcode == operations.Public_Decrypt){
+                outputTextArea.setText(rsaBase.pubkeyDecrypt(text));
+            } else if (opcode == operations.Private_Encrypt){
+                outputTextArea.setText(rsaBase.prikeyEncrypt(text));
+            } else if (opcode == operations.Private_Decrypt){
+                outputTextArea.setText(rsaBase.prikeyDecrypt(text));
+            }
+        }
+        ).start();
+    }
+
+    enum operations{
+        Public_Encrypt,
+        Public_Decrypt,
+        Private_Encrypt,
+        Private_Decrypt,
     }
 
     enum status{
@@ -103,13 +123,6 @@ public class Pgp{
 
         JTextField lengthField = new JTextField("2048", 7);
         lengthField.setHorizontalAlignment(JTextField.RIGHT);
-//        var menuBar = new MenuBar();
-//        var menu = new Menu("A Menu");
-//        menu.getAccessibleContext().setAccessibleDescription(
-//                "The only menu in this program that has menu items");
-//        menu.add(new MenuItem("Status"));
-//        menuBar.add(menu);
-//        mainFrame.setMenuBar(menuBar);
 
         class ButtonListener implements ActionListener {
 
@@ -138,7 +151,7 @@ public class Pgp{
                     }
                     case "Load Private Key": {
                         // FIXME: CHANGE TO PROPER SAVABLE PATH IN GUI, SETTINGS
-                        var fc = new JFileChooser("C:\\Users\\shynn");
+                        var fc = new JFileChooser();
                         fc.setDialogTitle("Select your Private Key");
                         fc.setApproveButtonText("Load");
                         fc.setApproveButtonToolTipText("Load Private Key");
@@ -172,7 +185,7 @@ public class Pgp{
                     }
                     case "Load Public Key": {
                         // FIXME: CHANGE TO PROPER SAVABLE PATH IN GUI, SETTINGS
-                        var fc = new JFileChooser("C:\\Users\\shynn");
+                        var fc = new JFileChooser();
                         fc.setDialogTitle("Select your Public Key");
                         fc.setApproveButtonText("Load");
                         fc.setApproveButtonToolTipText("Load Public Key");
@@ -240,6 +253,22 @@ public class Pgp{
                         }
                         break;
                     }
+                    // "Public Key Encrypt", "Private Key Encrypt", "Operate", "Private Key Decrypt", "Public Key Decrypt"
+                    case "Public Key Encrypt":
+                        currentOp = operations.Public_Encrypt;
+                        break;
+                    case "Private Key Encrypt":
+                        currentOp = operations.Private_Encrypt;
+                        break;
+                    case "Decrypt w/ Private Key":
+                        currentOp = operations.Private_Decrypt;
+                        break;
+                    case "Decrypt w/ Public Key":
+                        currentOp = operations.Public_Decrypt;
+                        break;
+                    case "Operate":
+                        runOperation(currentOp, inputTextArea.getText());
+                        break;
                     default:
                         break;
                 }
@@ -248,30 +277,69 @@ public class Pgp{
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        this.rsaGenerate.add(new JLabel("Key size (in bits): "), gbc);
+//        this.rsaGenerate.add(new JLabel("Key size (in bits): "), gbc);
 
         JButton generateKeys = new JButton("Generate Keys");
         generateKeys.setPreferredSize(new Dimension(150, 25));
         gbc.gridx = 1; gbc.gridy = 1;
-        this.rsaGenerate.add(lengthField, gbc);
+//        this.rsaGenerate.add(lengthField, gbc);
         gbc.gridx = 1; gbc.gridy = 4;
         this.rsaGenerate.add(generateKeys, gbc);
         generateKeys.addActionListener(
                 new ButtonListener() // See ButtonListener
         );
 
+
         // Encrypt and Decrypt
 
         // To Decrypt/Encrypt text
-        JTextArea cipherPlainField = new JTextArea("", 100, 100);
-        var textPanel = new JScrollPane(cipherPlainField);
-        textPanel.setVisible(true);
-        textPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-        cipherPlainField.setEditable(true);
-        rsaEnDecrypt.add(textPanel);
-        textPanel.add(cipherPlainField);
+        this.rsaEnDecrypt.setLayout(new GridBagLayout());
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridwidth = 12; gbc.gridheight = 6;
+
+        inputTextArea = new JTextArea("", 5, 68);
+        inputTextArea.setLineWrap(true);
+        inputTextArea.setEditable(true);
+        inputTextArea.setVisible(true);
+
+        var inputTextPane = new JScrollPane(inputTextArea);
+        inputTextPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        inputTextPane.setVisible(true);
+        rsaEnDecrypt.add(inputTextPane, gbc);
+
+        gbc.insets = new Insets(20, 5, 20, 5);
+        gbc.gridx = 0; gbc.gridy = 6;
+        gbc.gridheight = 1;
+        // Buttons Row 2 Columns 1->5
+        int ind = 0;
+        for (var z : new String[]{"Public Key Encrypt", "Private Key Encrypt", "Operate", "Decrypt w/ Private Key", "Decrypt w/ Public Key"}){
+            var t = new JButton(z);
+            t.addActionListener(new ButtonListener());
+            gbc.gridwidth = 2;
+            ind = 2;
+            rsaEnDecrypt.add(t, gbc);
+            gbc.gridx+=ind;
+
+        }
+
+        gbc.insets = new Insets(0, 0, 0, 0);
+        gbc.gridx = 0; gbc.gridy = 7;
+        gbc.gridwidth = 12; gbc.gridheight = 6;
+
+        outputTextArea = new JTextArea("", 8, 68);
+        outputTextArea.setLineWrap(true);
+        outputTextArea.setEditable(false);
+        outputTextArea.setVisible(true);
+
+        var outputTextPane = new JScrollPane(outputTextArea);
+        outputTextPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+        outputTextPane.setVisible(true);
+        rsaEnDecrypt.add(outputTextPane, gbc);
+
 
         // Load/Save keys
+        gbc.gridwidth = 1; gbc.gridheight = 1;
         rsaSaveLoad.setLayout(new GridBagLayout());
         JButton saveDKeys = new JButton("Save Private Key");
         saveDKeys.addActionListener(new ButtonListener());
@@ -304,6 +372,7 @@ public class Pgp{
                 "Please name your keys appropriately:\n" +
                 "You cannot get them back if you accidentally delete them.");
         descriptor.setFont(new Font("Times New Roman", Font.ROMAN_BASELINE, 16));
+        descriptor.setEditable(false);
         descriptor.setBackground(new Color(0xEEEEEE));
         gbc.insets = new Insets(50, 10, 10, 10);
         gbc.gridwidth = 7; gbc.gridheight = 3;
@@ -326,13 +395,13 @@ public class Pgp{
         mainFrame.setTitle("PGP");
 
         try {
-            File pathToFile = new File("crypto/logo.png");
-            Image image = ImageIO.read(pathToFile);
+            InputStream in = Pgp .class.getResourceAsStream("logo.png");
+            Image image = ImageIO.read(in);
             mainFrame.setIconImage(image);
         } catch (Exception ex) {
             System.out.println(Arrays.toString(ex.getStackTrace()));
         }
-        mainFrame.setSize(500, 400);
+        mainFrame.setSize(720, 480);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setResizable(false);
 
