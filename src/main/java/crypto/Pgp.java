@@ -5,6 +5,8 @@ import java.math.BigInteger;
 import java.util.*;
 
 import javax.imageio.ImageIO;
+import javax.imageio.stream.FileImageInputStream;
+import javax.imageio.stream.ImageInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -395,11 +397,14 @@ public class Pgp{
         mainFrame.setTitle("PGP");
 
         try {
-            InputStream in = Pgp .class.getResourceAsStream("logo.png");
+//            InputStream in = Pgp.class.getResourceAsStream("logo.png");
+            FileInputStream in = new FileInputStream("logo.png");
             Image image = ImageIO.read(in);
             mainFrame.setIconImage(image);
+            System.out.println("Set");
         } catch (Exception ex) {
-            System.out.println(Arrays.toString(ex.getStackTrace()));
+            ex.printStackTrace();
+//            System.out.println(Arrays.toString(ex.getStackTrace()));
         }
         mainFrame.setSize(720, 480);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
